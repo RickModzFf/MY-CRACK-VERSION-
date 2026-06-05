@@ -1,0 +1,239 @@
+javascript:(function(){
+    const CONFIG = {
+        zxiFileUrl: "https://zxi-file-loader.ah4734536.workers.dev/?file=zxi.txt",
+        brandColor: "#00ffcc"
+    };
+    
+    // Remove existing modal if present
+    const existingModal = document.getElementById('rmx-bookmark-modal');
+    if (existingModal) existingModal.remove();
+    
+    // Add styles
+    const styleId = 'rmx-bookmark-styles';
+    if (!document.getElementById(styleId)) {
+        const styles = document.createElement('style');
+        styles.id = styleId;
+        styles.textContent = `
+            @keyframes rmx-glow {
+                0% { box-shadow: 0 0 5px #00ffcc; border-color: #00ffcc; }
+                35% { box-shadow: 0 0 25px #00ffff; border-color: #00ffff; }
+                100% { box-shadow: 0 0 5px #00ffcc; border-color: #00ffcc; }
+            }
+            @keyframes rmx-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            @keyframes rmx-fire-spin {
+                0% { transform: translate(-50%, -50%) rotate(0deg); }
+                100% { transform: translate(-50%, -50%) rotate(360deg); }
+            }
+            @keyframes rmx-fadeIn {
+                from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+                to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'rmx-bookmark-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(6,10,23,0.98), rgba(10,15,30,0.95));
+        backdrop-filter: blur(20px);
+        color: #fff;
+        padding: 35px 30px;
+        border-radius: 24px;
+        z-index: 2147483647;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        text-align: center;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        border: 2px solid #00ffcc;
+        min-width: 320px;
+        animation: rmx-glow 3s infinite, rmx-fadeIn 0.3s ease;
+        box-sizing: border-box;
+    `;
+    
+    modal.innerHTML = `
+        <div style="margin-bottom: 15px;">
+            <div style="width: 60px; height: 60px; margin: 0 auto 15px; background: linear-gradient(135deg, #00ffcc, #ff3366); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; animation: rmx-spin 8s linear infinite; box-shadow: 0 0 20px rgba(0,255,204,0.3);">⚡</div>
+            <h3 style="margin: 0 0 5px 0; background: linear-gradient(135deg, #00ffcc, #ff3366, #ffaa00); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 24px; font-weight: 900; letter-spacing: 1px;">RICK MODZ X</h3>
+            <p style="margin: 0 0 15px 0; color: #ffaa00; font-size: 10px; letter-spacing: 2px; font-weight: 600;">BOOKMARK EDITION</p>
+        </div>
+        
+        <input type="text" id="rmx-key-input" placeholder="ENTER ANY KEY" style="width: 100%; padding: 14px; margin-bottom: 16px; border: 1px solid rgba(0,255,204,0.4); border-radius: 12px; background: rgba(7,11,25,0.8); color: #fff; text-align: center; box-sizing: border-box; font-size: 13px; font-weight: 600; outline: none; transition: all 0.3s ease;">
+        
+        <button id="rmx-login-btn" style="width: 100%; background: linear-gradient(135deg, #00ffcc, #00e6b8); color: #030712; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 14px; letter-spacing: 1px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,255,204,0.3);">🔓 ACCESS SYSTEM</button>
+        
+        <div id="rmx-status" style="margin-top: 18px; font-size: 11px; font-weight: 700; color: #00ffcc; letter-spacing: 1px;">⚡ READY • ANY KEY WORKS</div>
+        
+        <div style="margin-top: 15px; font-size: 9px; color: #4a5568; border-top: 1px solid rgba(0,255,204,0.1); padding-top: 12px;">RICK MODZ X • OFFLINE MODE</div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Get elements
+    const keyInput = document.getElementById('rmx-key-input');
+    const loginBtn = document.getElementById('rmx-login-btn');
+    const statusDiv = document.getElementById('rmx-status');
+    
+    // Focus effects
+    keyInput.addEventListener('focus', () => {
+        keyInput.style.border = '1px solid #00ffcc';
+        keyInput.style.boxShadow = '0 0 10px rgba(0,255,204,0.3)';
+    });
+    keyInput.addEventListener('blur', () => {
+        keyInput.style.border = '1px solid rgba(0,255,204,0.4)';
+        keyInput.style.boxShadow = 'none';
+    });
+    
+    // Auto-focus input
+    keyInput.focus();
+    
+    // Countdown redirect function
+    function redirectWithCountdown(targetUrl) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3,7,18,0.95);
+            backdrop-filter: blur(12px);
+            z-index: 2147483647;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, sans-serif;
+            animation: rmx-fadeIn 0.3s ease;
+        `;
+        
+        const seconds = Math.floor(Math.random() * (8 - 3 + 1) + 3);
+        let countdown = seconds;
+        
+        overlay.innerHTML = `
+            <div style="text-align: center;">
+                <div style="position: relative; width: 260px; height: 260px; margin: 0 auto;">
+                    <div style="position: absolute; top: 50%; left: 50%; width: 220px; height: 220px; border-radius: 50%; background: conic-gradient(transparent 0deg, #ff3300 90deg, #ffaa00 180deg, #00ffcc 270deg, transparent 360deg); filter: blur(14px); opacity: 0.85; animation: rmx-fire-spin 1.5s linear infinite;"></div>
+                    <div style="position: absolute; top: 50%; left: 50%; width: 210px; height: 210px; border-radius: 50%; background: conic-gradient(transparent 0deg, #ff0055 60deg, #ff5500 120deg, #ffcc00 240deg, transparent 360deg); filter: blur(6px); opacity: 0.9; animation: rmx-fire-spin 1s linear infinite reverse;"></div>
+                    <svg width="260" height="260" style="transform: rotate(-90deg); position: relative; z-index: 3;">
+                        <circle cx="130" cy="130" r="105" fill="rgba(6,10,23,0.7)" stroke="rgba(0,255,204,0.15)" stroke-width="12"></circle>
+                        <circle id="rmx-progress" cx="130" cy="130" r="105" fill="none" stroke="#00ffcc" stroke-width="12" stroke-dasharray="660" stroke-dashoffset="660" stroke-linecap="round" style="filter: drop-shadow(0 0 6px #00ffcc);"></circle>
+                    </svg>
+                    <div id="rmx-countdown" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 58px; font-weight: 900; color: #fff; text-shadow: 0 0 25px #00ffcc; z-index: 4;">${countdown}</div>
+                </div>
+                <p style="margin-top: 25px; color: #00ffcc; font-size: 16px; font-weight: 700; letter-spacing: 3px; text-shadow: 0 0 10px rgba(0,255,204,0.4);">⚡ RICK MODZ X • REDIRECTING ⚡</p>
+                <p style="margin-top: 8px; color: #64748b; font-size: 10px; max-width: 280px; word-break: break-all;">${targetUrl.substring(0, 50)}${targetUrl.length > 50 ? '...' : ''}</p>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        const progressCircle = overlay.querySelector('#rmx-progress');
+        const countdownEl = overlay.querySelector('#rmx-countdown');
+        const circumference = 660;
+        
+        const interval = setInterval(() => {
+            countdown--;
+            countdownEl.textContent = countdown;
+            const offset = circumference - (circumference * (countdown / seconds));
+            progressCircle.style.strokeDashoffset = offset;
+            
+            if (countdown <= 0) {
+                clearInterval(interval);
+                overlay.style.transition = 'opacity 0.3s';
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.remove();
+                    window.location.href = targetUrl;
+                }, 300);
+            }
+        }, 1000);
+    }
+    
+    // Login function - ANY KEY WORKS
+    async function handleLogin() {
+        const enteredKey = keyInput.value.trim();
+        
+        console.log(`%c⚡ RICK MODZ X - ANY KEY ACCEPTED: ${enteredKey || "(empty)"}`, "color: #00ffcc");
+        
+        statusDiv.innerHTML = '<span style="color: #ffaa00;">⚡ PROCESSING...</span>';
+        loginBtn.disabled = true;
+        loginBtn.style.opacity = '0.6';
+        loginBtn.innerHTML = '⏳ LOADING...';
+        
+        await new Promise(r => setTimeout(r, 600));
+        
+        statusDiv.innerHTML = '<span style="color: #00ffcc;">✓ ACCESS GRANTED</span>';
+        loginBtn.innerHTML = '✓ GRANTED';
+        
+        setTimeout(async () => {
+            // Fade out modal
+            modal.style.transition = 'opacity 0.3s, transform 0.3s';
+            modal.style.opacity = '0';
+            modal.style.transform = 'translate(-50%, -50%) scale(0.95)';
+            
+            setTimeout(() => modal.remove(), 300);
+            
+            statusDiv.innerHTML = '<span style="color: #ffaa00;">⚡ FETCHING REDIRECT...</span>';
+            
+            try {
+                const response = await fetch(CONFIG.zxiFileUrl + '?t=' + Date.now());
+                const redirectUrl = (await response.text()).trim();
+                
+                if (redirectUrl && redirectUrl.startsWith('http')) {
+                    console.log('%c✓ Redirect fetched: ' + redirectUrl, 'color: #00ffcc');
+                    redirectWithCountdown(redirectUrl);
+                } else {
+                    throw new Error('Invalid URL from zxi.txt');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: rgba(6,10,23,0.95);
+                    border-left: 3px solid #ff4444;
+                    padding: 12px 18px;
+                    border-radius: 12px;
+                    color: #ff4444;
+                    font-size: 12px;
+                    font-family: monospace;
+                    z-index: 2147483647;
+                    backdrop-filter: blur(8px);
+                    animation: rmx-fadeIn 0.3s ease;
+                `;
+                errorDiv.innerHTML = '⚠ Failed to fetch zxi.txt<br>Check your connection';
+                document.body.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 5000);
+            }
+        }, 600);
+    }
+    
+    loginBtn.addEventListener('click', handleLogin);
+    keyInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+    });
+    
+    // Adjust for small screens
+    if (window.innerWidth < 500) {
+        modal.style.width = '85%';
+        modal.style.minWidth = 'auto';
+        modal.style.padding = '25px 20px';
+    }
+    
+    // Console welcome
+    console.log('%c╔══════════════════════════════════════════════════════════╗', 'color: #00ffcc');
+    console.log('%c║           RICK MODZ X - BOOKMARK EDITION                ║', 'color: #00ffcc');
+    console.log('%c║                 ONLY zxi.txt IS USED                    ║', 'color: #ffaa00');
+    console.log('%c║              ANY KEY WORKS - NO VALIDATION              ║', 'color: #00ffcc');
+    console.log('%c║            WORKS IN CHROME BOOKMARKS                    ║', 'color: #00ffcc');
+    console.log('%c╚══════════════════════════════════════════════════════════╝', 'color: #00ffcc');
+})();
